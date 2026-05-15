@@ -12,7 +12,7 @@ const AXIS_CONFIG = [
 ];
 
 export function PositionDisplay() {
-  const [position, setPosition] = useState<ArmPosition>({ x: 0, y: 0, z: 0, rotation: 0, vacuum_on: false, connected: false });
+  const [position, setPosition] = useState<ArmPosition>({ x: 0, y: 0, z: 0, rotation: 0, vacuum_on: false, connected: false, learning_mode: false });
 
   useEffect(() => {
     return robotSocket.onPosition(setPosition);

@@ -26,8 +26,8 @@ export function CalibrationWizard() {
   const [pointA, setPointA] = useState<RecordedPoint>({ x: 0, y: 0, z: 0, recorded: false });
   const [pointB, setPointB] = useState<RecordedPoint>({ x: 0, y: 0, z: 0, recorded: false });
   const [pointC, setPointC] = useState<RecordedPoint>({ x: 0, y: 0, z: 0, recorded: false });
-  const [livePosition, setLivePosition] = useState<ArmPosition>({ x: 0, y: 0, z: 0, rotation: 0, vacuum_on: false, connected: false });
-  const positionRef = useRef<ArmPosition>({ x: 0, y: 0, z: 0, rotation: 0, vacuum_on: false, connected: false });
+  const [livePosition, setLivePosition] = useState<ArmPosition>({ x: 0, y: 0, z: 0, rotation: 0, vacuum_on: false, connected: false, learning_mode: false });
+  const positionRef = useRef<ArmPosition>({ x: 0, y: 0, z: 0, rotation: 0, vacuum_on: false, connected: false, learning_mode: false });
 
   useEffect(() => {
     return robotSocket.onPosition((pos) => {

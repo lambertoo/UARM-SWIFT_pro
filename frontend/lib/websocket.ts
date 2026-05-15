@@ -88,6 +88,10 @@ class RobotWebSocket {
     this.send({ type: "gcode", command } as any);
   }
 
+  setLearningMode(enabled: boolean) {
+    this.send({ type: "learning_mode", enabled } as any);
+  }
+
   onPosition(listener: PositionListener) {
     this.positionListeners.add(listener);
     return () => { this.positionListeners.delete(listener); };

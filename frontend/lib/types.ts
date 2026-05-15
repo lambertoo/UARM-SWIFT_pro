@@ -5,6 +5,7 @@ export interface ArmPosition {
   rotation: number;
   vacuum_on: boolean;
   connected: boolean;
+  learning_mode: boolean;
 }
 
 export interface CalibrationProfile {

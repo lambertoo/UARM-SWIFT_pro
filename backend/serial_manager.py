@@ -14,6 +14,7 @@ class SerialManager:
         self._vacuum_on = False
         self._connected = False
         self._emergency_stopped = False
+        self._learning_mode = False
 
     @property
     def is_connected(self) -> bool:
@@ -22,6 +23,10 @@ class SerialManager:
     @property
     def vacuum_on(self) -> bool:
         return self._vacuum_on
+
+    @property
+    def learning_mode(self) -> bool:
+        return self._learning_mode
 
     def connect(self, port_path: str | None = None):
         with self._lock:
@@ -139,6 +144,29 @@ class SerialManager:
             if not self.is_connected:
                 raise ConnectionError("Not connected")
             self._swift.set_servo_angle(servo_id=servo_id, angle=angle)
+
+    def set_learning_mode(self, enabled: bool):
+        with self._lock:
+            if not self.is_connected:
+                raise ConnectionError("Not connected")
+            if enabled:
+                for servo_id in range(4):
+                    self._swift.set_servo_detach(servo_id=servo_id)
+                self._learning_mode = True
+            else:
+                for servo_id in range(4):
+                    self._swift.set_servo_attach(servo_id=servo_id)
+                self._learning_mode = False
+
+    def get_gripper_catch(self) -> bool:
+        with self._lock:
+            if not self.is_connected:
+                return False
+            try:
+                result = self._swift.get_gripper_catch()
+                return bool(result)
+            except Exception:
+                return False
 
     def set_buzzer(self, frequency: int = 1000, duration: float = 0.5):
         with self._lock:

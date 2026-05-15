@@ -25,6 +25,7 @@ async def websocket_endpoint(ws: WebSocket):
                         "rotation": 0.0,
                         "vacuum_on": serial_manager.vacuum_on,
                         "connected": True,
+                        "learning_mode": serial_manager.learning_mode,
                     })
                 else:
                     await ws.send_json({
@@ -70,6 +71,11 @@ async def websocket_endpoint(ws: WebSocket):
 
                 elif msg_type == "home":
                     await asyncio.to_thread(serial_manager.home)
+
+                elif msg_type == "learning_mode":
+                    enabled = bool(message.get("enabled", False))
+                    await asyncio.to_thread(serial_manager.set_learning_mode, enabled)
+                    await ws.send_json({"type": "learning_mode", "enabled": enabled})
 
                 elif msg_type == "gcode":
                     gcode_line = message.get("command", "").strip()
