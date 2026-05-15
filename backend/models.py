@@ -75,11 +75,16 @@ class SequenceWithWaypoints(Sequence):
 
 
 class SafetyConfig(BaseModel):
+    workspace_min_x: float = -350.0
+    workspace_max_x: float = 350.0
+    workspace_min_y: float = -350.0
+    workspace_max_y: float = 350.0
+    workspace_min_z: float = 0.0
+    workspace_max_z: float = 150.0
     max_speed: float = 200.0
+    loaded_max_speed: float = 100.0
     boundary_slowdown_distance: float = 10.0
     boundary_slowdown_factor: float = 0.25
-    loaded_max_speed: float = 100.0
-    estop_release_vacuum: bool = False
 
 
 class ExclusionZoneCreate(BaseModel):

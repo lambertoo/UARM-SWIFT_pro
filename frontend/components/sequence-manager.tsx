@@ -63,25 +63,33 @@ export function SequenceManager({ onLoad, currentWaypoints }: SequenceManagerPro
   }
 
   return (
-    <div className="border rounded-lg p-4 space-y-3">
-      <h3 className="text-sm font-medium">Sequences</h3>
-      <div className="flex gap-2">
-        <input placeholder="Name" value={saveName} onChange={(e) => setSaveName(e.target.value)} className="flex-1 border rounded px-2 py-1 text-sm" />
-        <button className="bg-blue-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50" onClick={handleSave} disabled={!saveName.trim() || currentWaypoints.length === 0}>Save</button>
+    <div className="card-panel">
+      <div className="card-panel-header">
+        <h3 className="text-sm font-semibold text-gray-700">Sequences</h3>
+        <span className="text-xs font-mono text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">{sequences.length}</span>
       </div>
-      <div className="space-y-1 max-h-48 overflow-y-auto">
-        {sequences.map((seq) => (
-          <div key={seq.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded text-sm">
-            <span className="flex-1 truncate">{seq.name}</span>
-            <button className="text-blue-600 text-xs hover:underline" onClick={() => handleLoad(seq.id)}>Load</button>
-            <button className="text-gray-600 text-xs hover:underline" onClick={() => handleExport(seq.id)}>Export</button>
-            <button className="text-red-600 text-xs hover:underline" onClick={() => handleDelete(seq.id)}>Del</button>
-          </div>
-        ))}
-      </div>
-      <div>
-        <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
-        <button className="w-full border rounded py-1.5 text-sm hover:bg-gray-100" onClick={() => fileInputRef.current?.click()}>Import JSON</button>
+      <div className="card-panel-body space-y-3">
+        <div className="flex gap-2">
+          <input placeholder="Sequence name" value={saveName} onChange={(e) => setSaveName(e.target.value)} className="input-field flex-1 text-sm" />
+          <button className="btn-primary text-xs" onClick={handleSave} disabled={!saveName.trim() || currentWaypoints.length === 0}>Save</button>
+        </div>
+
+        <div className="space-y-1 max-h-48 overflow-y-auto">
+          {sequences.length === 0 && <p className="text-xs text-gray-400 text-center py-3">No saved sequences</p>}
+          {sequences.map((seq) => (
+            <div key={seq.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg text-sm hover:bg-gray-100 transition-colors">
+              <span className="flex-1 truncate font-medium text-gray-700">{seq.name}</span>
+              <button className="text-blue-600 text-xs font-medium hover:text-blue-800 transition-colors" onClick={() => handleLoad(seq.id)}>Load</button>
+              <button className="text-gray-400 text-xs font-medium hover:text-gray-700 transition-colors" onClick={() => handleExport(seq.id)}>Export</button>
+              <button className="text-gray-400 text-xs font-medium hover:text-red-600 transition-colors" onClick={() => handleDelete(seq.id)}>Del</button>
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
+          <button className="btn-secondary w-full text-xs" onClick={() => fileInputRef.current?.click()}>Import JSON</button>
+        </div>
       </div>
     </div>
   );

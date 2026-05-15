@@ -56,4 +56,21 @@ export const api = {
   stopScript: () => request("/api/scripts/stop", { method: "POST" }),
   exportPython: (program: import("./types").ProgramBlock[]) =>
     request<{ script: string }>("/api/scripts/export-python", { method: "POST", body: JSON.stringify({ program }) }),
+
+  parseGcode: (gcode: string) =>
+    request<{ toolpath: import("./types").GcodeToolpathPoint[]; total_lines: number }>("/api/gcode/parse", { method: "POST", body: JSON.stringify({ gcode }) }),
+  uploadGcode: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await fetch(`${API_BASE}/api/gcode/upload`, { method: "POST", body: formData });
+    if (!response.ok) throw new Error("Upload failed");
+    return response.json() as Promise<{ filename: string; gcode: string; toolpath: import("./types").GcodeToolpathPoint[]; total_lines: number }>;
+  },
+  runGcode: (gcode: string) =>
+    request("/api/gcode/run", { method: "POST", body: JSON.stringify({ gcode }) }),
+  pauseGcode: () => request("/api/gcode/pause", { method: "POST" }),
+  resumeGcode: () => request("/api/gcode/resume", { method: "POST" }),
+  stopGcode: () => request("/api/gcode/stop", { method: "POST" }),
+  gcodeProgress: () =>
+    request<{ running: boolean; paused: boolean; current_line: number; total_lines: number; current_command: string }>("/api/gcode/progress"),
 };

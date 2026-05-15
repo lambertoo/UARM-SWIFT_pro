@@ -13,6 +13,7 @@ class SerialManager:
         self._lock = threading.Lock()
         self._vacuum_on = False
         self._connected = False
+        self._emergency_stopped = False
 
     @property
     def is_connected(self) -> bool:
@@ -25,7 +26,7 @@ class SerialManager:
     def connect(self, port_path: str | None = None):
         with self._lock:
             if SwiftAPI is None:
-                raise ConnectionError("uArm Python SDK (pyuf) not installed")
+                raise ConnectionError("uArm Python SDK not installed. Run: pip install git+https://github.com/uArm-Developer/uArm-Python-SDK.git")
             if self._swift:
                 try:
                     self._swift.disconnect()
@@ -35,6 +36,7 @@ class SerialManager:
             self._swift.connect()
             self._swift.waiting_ready()
             self._connected = True
+            self._emergency_stopped = False
 
     def disconnect(self):
         with self._lock:
@@ -50,17 +52,27 @@ class SerialManager:
         with self._lock:
             if not self.is_connected:
                 return {"x": 0.0, "y": 0.0, "z": 0.0}
-            position = self._swift.get_position()
-            if position and len(position) >= 3:
-                return {"x": position[0] or 0.0, "y": position[1] or 0.0, "z": position[2] or 0.0}
+            try:
+                position = self._swift.get_position()
+                if position and len(position) >= 3:
+                    return {
+                        "x": float(position[0] or 0.0),
+                        "y": float(position[1] or 0.0),
+                        "z": float(position[2] or 0.0),
+                    }
+            except Exception:
+                pass
             return {"x": 0.0, "y": 0.0, "z": 0.0}
 
-    def move_to(self, x: float, y: float, z: float, speed: float = 100.0):
+    def move_to(self, x: float, y: float, z: float, speed: float = 100.0, wait: bool = False):
         with self._lock:
             if not self.is_connected:
                 raise ConnectionError("Not connected")
+            if self._emergency_stopped:
+                raise ConnectionError("Emergency stop active. Send home to resume.")
             self._swift.set_position(x=x, y=y, z=z, speed=speed)
-            self._swift.waiting_ready()
+            if wait:
+                self._swift.waiting_ready()
 
     def set_pump(self, on: bool):
         with self._lock:
@@ -79,6 +91,7 @@ class SerialManager:
         with self._lock:
             if not self.is_connected:
                 raise ConnectionError("Not connected")
+            self._emergency_stopped = False
             self._swift.reset()
             self._swift.waiting_ready()
 
@@ -86,7 +99,27 @@ class SerialManager:
         with self._lock:
             if not self.is_connected:
                 return
-            self._swift.set_position(x=0, y=0, z=0, speed=0)
+            self._emergency_stopped = True
+            try:
+                self._swift.send_cmd_sync("M17")
+            except Exception:
+                pass
+            try:
+                self._swift.set_pump(on=False)
+                self._vacuum_on = False
+            except Exception:
+                pass
+
+    def resume_from_emergency(self):
+        with self._lock:
+            self._emergency_stopped = False
+
+    def send_gcode(self, gcode: str) -> str:
+        with self._lock:
+            if not self.is_connected:
+                raise ConnectionError("Not connected")
+            response = self._swift.send_cmd_sync(gcode)
+            return str(response) if response else "ok"
 
     def get_device_info(self) -> dict:
         with self._lock:

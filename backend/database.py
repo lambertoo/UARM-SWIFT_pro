@@ -53,11 +53,16 @@ async def initialize_database(database_path: str | None = None):
 
             CREATE TABLE IF NOT EXISTS safety_config (
                 id INTEGER PRIMARY KEY CHECK (id = 1),
+                workspace_min_x REAL NOT NULL DEFAULT -350.0,
+                workspace_max_x REAL NOT NULL DEFAULT 350.0,
+                workspace_min_y REAL NOT NULL DEFAULT -350.0,
+                workspace_max_y REAL NOT NULL DEFAULT 350.0,
+                workspace_min_z REAL NOT NULL DEFAULT 0.0,
+                workspace_max_z REAL NOT NULL DEFAULT 150.0,
                 max_speed REAL NOT NULL DEFAULT 200.0,
-                boundary_slowdown_distance REAL NOT NULL DEFAULT 10.0,
-                boundary_slowdown_factor REAL NOT NULL DEFAULT 0.25,
                 loaded_max_speed REAL NOT NULL DEFAULT 100.0,
-                estop_release_vacuum INTEGER NOT NULL DEFAULT 0
+                boundary_slowdown_distance REAL NOT NULL DEFAULT 10.0,
+                boundary_slowdown_factor REAL NOT NULL DEFAULT 0.25
             );
 
             CREATE TABLE IF NOT EXISTS exclusion_zones (
@@ -71,8 +76,7 @@ async def initialize_database(database_path: str | None = None):
                 max_z REAL NOT NULL
             );
 
-            INSERT OR IGNORE INTO safety_config (id, max_speed, boundary_slowdown_distance, boundary_slowdown_factor, loaded_max_speed, estop_release_vacuum)
-            VALUES (1, 200.0, 10.0, 0.25, 100.0, 0);
+            INSERT OR IGNORE INTO safety_config (id) VALUES (1);
         """)
         await db.commit()
 

@@ -11,7 +11,9 @@ async def get_safety_config():
     db = await get_connection(get_database_path())
     try:
         cursor = await db.execute("SELECT * FROM safety_config WHERE id = 1")
-        config = dict(await cursor.fetchone())
+        row = await cursor.fetchone()
+        config = dict(row) if row else {}
+        config.pop("id", None)
         cursor = await db.execute("SELECT * FROM exclusion_zones")
         zones = [dict(row) for row in await cursor.fetchall()]
         return {"config": config, "exclusion_zones": zones}
@@ -25,10 +27,18 @@ async def update_safety_config(data: SafetyConfig):
     db = await get_connection(get_database_path())
     try:
         await db.execute(
-            """UPDATE safety_config SET max_speed=?, boundary_slowdown_distance=?,
-            boundary_slowdown_factor=?, loaded_max_speed=?, estop_release_vacuum=? WHERE id=1""",
-            (data.max_speed, data.boundary_slowdown_distance, data.boundary_slowdown_factor,
-             data.loaded_max_speed, int(data.estop_release_vacuum)),
+            """UPDATE safety_config SET
+            workspace_min_x=?, workspace_max_x=?,
+            workspace_min_y=?, workspace_max_y=?,
+            workspace_min_z=?, workspace_max_z=?,
+            max_speed=?, loaded_max_speed=?,
+            boundary_slowdown_distance=?, boundary_slowdown_factor=?
+            WHERE id=1""",
+            (data.workspace_min_x, data.workspace_max_x,
+             data.workspace_min_y, data.workspace_max_y,
+             data.workspace_min_z, data.workspace_max_z,
+             data.max_speed, data.loaded_max_speed,
+             data.boundary_slowdown_distance, data.boundary_slowdown_factor),
         )
         await db.commit()
     finally:
@@ -42,9 +52,9 @@ async def update_safety_config(data: SafetyConfig):
         await db2.close()
 
     main_module.safety_validator = SafetyValidator(
-        workspace_min_x=-350.0, workspace_max_x=350.0,
-        workspace_min_y=-350.0, workspace_max_y=350.0,
-        workspace_min_z=0.0, workspace_max_z=150.0,
+        workspace_min_x=data.workspace_min_x, workspace_max_x=data.workspace_max_x,
+        workspace_min_y=data.workspace_min_y, workspace_max_y=data.workspace_max_y,
+        workspace_min_z=data.workspace_min_z, workspace_max_z=data.workspace_max_z,
         max_speed=data.max_speed, loaded_max_speed=data.loaded_max_speed,
         boundary_slowdown_distance=data.boundary_slowdown_distance,
         boundary_slowdown_factor=data.boundary_slowdown_factor,

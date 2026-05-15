@@ -7,14 +7,17 @@ import { Robot3DView } from "@/components/robot-3d-view";
 
 export default function ScriptsPage() {
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Visual Scripting</h2>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 space-y-4">
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Visual Scripting</h2>
+        <p className="text-sm text-gray-500 mt-1">Block-based programming with Blockly</p>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2 space-y-5">
           <BlockEditor />
           <Robot3DView />
         </div>
-        <div className="space-y-4">
+        <div className="space-y-5">
           <PositionDisplay />
           <VacuumControl />
         </div>

@@ -19,7 +19,9 @@ async def websocket_endpoint(ws: WebSocket):
                     position = serial_manager.get_position()
                     await ws.send_json({
                         "type": "position",
-                        "x": position["x"], "y": position["y"], "z": position["z"],
+                        "x": float(position.get("x", 0)),
+                        "y": float(position.get("y", 0)),
+                        "z": float(position.get("z", 0)),
                         "rotation": 0.0,
                         "vacuum_on": serial_manager.vacuum_on,
                         "connected": True,
@@ -27,7 +29,7 @@ async def websocket_endpoint(ws: WebSocket):
                 else:
                     await ws.send_json({
                         "type": "position",
-                        "x": 0, "y": 0, "z": 0, "rotation": 0,
+                        "x": 0.0, "y": 0.0, "z": 0.0, "rotation": 0.0,
                         "vacuum_on": False, "connected": False,
                     })
                 await asyncio.sleep(0.1)
@@ -44,20 +46,20 @@ async def websocket_endpoint(ws: WebSocket):
                 if msg_type == "jog":
                     position = serial_manager.get_position()
                     axis = message["axis"]
-                    distance = message["distance"]
-                    speed = message.get("speed", 50)
+                    distance = float(message["distance"])
+                    speed = float(message.get("speed", 50))
                     target = dict(position)
-                    target[axis] = position[axis] + distance
+                    target[axis] = float(position[axis]) + distance
                     safety_validator.validate_move(target["x"], target["y"], target["z"], speed=speed, vacuum_on=serial_manager.vacuum_on)
                     speed = safety_validator.apply_boundary_slowdown(target["x"], target["y"], target["z"], speed)
-                    serial_manager.move_to(target["x"], target["y"], target["z"], speed=speed)
+                    serial_manager.move_to(target["x"], target["y"], target["z"], speed=speed, wait=False)
 
                 elif msg_type == "move_to":
-                    x, y, z = message["x"], message["y"], message["z"]
-                    speed = message.get("speed", 100)
+                    x, y, z = float(message["x"]), float(message["y"]), float(message["z"])
+                    speed = float(message.get("speed", 100))
                     safety_validator.validate_move(x, y, z, speed=speed, vacuum_on=serial_manager.vacuum_on)
                     speed = safety_validator.apply_boundary_slowdown(x, y, z, speed)
-                    serial_manager.move_to(x, y, z, speed=speed)
+                    serial_manager.move_to(x, y, z, speed=speed, wait=False)
 
                 elif msg_type == "vacuum":
                     serial_manager.set_pump(message["state"])
@@ -67,13 +69,21 @@ async def websocket_endpoint(ws: WebSocket):
                     await ws.send_json({"type": "emergency_stop", "status": "stopped"})
 
                 elif msg_type == "home":
-                    serial_manager.home()
+                    await asyncio.to_thread(serial_manager.home)
+
+                elif msg_type == "gcode":
+                    gcode_line = message.get("command", "").strip()
+                    if gcode_line:
+                        response = await asyncio.to_thread(serial_manager.send_gcode, gcode_line)
+                        await ws.send_json({"type": "gcode_response", "command": gcode_line, "response": response})
 
                 await ws.send_json({"type": "ack", "command": msg_type, "status": "ok"})
 
             except SafetyViolation as e:
                 await ws.send_json({"type": "error", "command": msg_type, "message": str(e)})
             except ConnectionError as e:
+                await ws.send_json({"type": "error", "command": msg_type, "message": str(e)})
+            except Exception as e:
                 await ws.send_json({"type": "error", "command": msg_type, "message": str(e)})
 
     except WebSocketDisconnect:

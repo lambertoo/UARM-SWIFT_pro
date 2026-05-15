@@ -3,6 +3,7 @@ import { ArmPosition, WebSocketCommand } from "./types";
 type PositionListener = (position: ArmPosition) => void;
 type ErrorListener = (error: { command: string; message: string }) => void;
 type ConnectionListener = (connected: boolean) => void;
+type GcodeResponseListener = (data: { command: string; response: string }) => void;
 
 class RobotWebSocket {
   private ws: WebSocket | null = null;
@@ -10,6 +11,7 @@ class RobotWebSocket {
   private positionListeners: Set<PositionListener> = new Set();
   private errorListeners: Set<ErrorListener> = new Set();
   private connectionListeners: Set<ConnectionListener> = new Set();
+  private gcodeListeners: Set<GcodeResponseListener> = new Set();
   private url: string;
   private missedHeartbeats = 0;
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
@@ -35,6 +37,8 @@ class RobotWebSocket {
         this.positionListeners.forEach((l) => l(data as ArmPosition));
       } else if (data.type === "error") {
         this.errorListeners.forEach((l) => l({ command: data.command, message: data.message }));
+      } else if (data.type === "gcode_response") {
+        this.gcodeListeners.forEach((l) => l({ command: data.command, response: data.response }));
       }
     };
 
@@ -80,6 +84,10 @@ class RobotWebSocket {
     this.send({ type: "home" });
   }
 
+  sendGcode(command: string) {
+    this.send({ type: "gcode", command } as any);
+  }
+
   onPosition(listener: PositionListener) {
     this.positionListeners.add(listener);
     return () => { this.positionListeners.delete(listener); };
@@ -93,6 +101,11 @@ class RobotWebSocket {
   onConnection(listener: ConnectionListener) {
     this.connectionListeners.add(listener);
     return () => { this.connectionListeners.delete(listener); };
+  }
+
+  onGcodeResponse(listener: GcodeResponseListener) {
+    this.gcodeListeners.add(listener);
+    return () => { this.gcodeListeners.delete(listener); };
   }
 
   private startHeartbeat() {

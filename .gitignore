@@ -6,3 +6,11 @@ __pycache__/
 *.db
 .env
 .DS_Store
+dist-electron/
+backend-dist/
+*.dmg
+*.AppImage
+*.deb
+*.exe
+build/
+dist/

@@ -14,17 +14,26 @@ export function CoordinateInput() {
   }
 
   return (
-    <div className="border rounded-lg p-4 space-y-3">
-      <h3 className="text-sm font-medium">Go To Position</h3>
-      <div className="grid grid-cols-4 gap-2">
-        {[{ label: "X", value: x, set: setX }, { label: "Y", value: y, set: setY }, { label: "Z", value: z, set: setZ }, { label: "Speed", value: speed, set: setSpeed }].map(({ label, value, set }) => (
-          <div key={label}>
-            <label className="text-xs text-gray-500">{label}</label>
-            <input type="number" value={value} onChange={(e) => set(e.target.value)} className="w-full border rounded px-2 py-1 text-sm" />
-          </div>
-        ))}
+    <div className="card-panel">
+      <div className="card-panel-header">
+        <h3 className="text-sm font-semibold text-gray-700">Go To Position</h3>
       </div>
-      <button className="w-full bg-blue-600 text-white rounded py-2 text-sm font-medium hover:bg-blue-700" onClick={handleGo}>Go</button>
+      <div className="card-panel-body space-y-3">
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            { label: "X", value: x, set: setX, color: "text-red-500" },
+            { label: "Y", value: y, set: setY, color: "text-emerald-500" },
+            { label: "Z", value: z, set: setZ, color: "text-blue-500" },
+            { label: "F", value: speed, set: setSpeed, color: "text-gray-500" },
+          ].map(({ label, value, set, color }) => (
+            <div key={label}>
+              <label className={`text-xs font-bold ${color}`}>{label}</label>
+              <input type="number" value={value} onChange={(e) => set(e.target.value)} className="input-field mt-1 font-mono text-center" />
+            </div>
+          ))}
+        </div>
+        <button className="btn-primary w-full" onClick={handleGo}>Move To</button>
+      </div>
     </div>
   );
 }

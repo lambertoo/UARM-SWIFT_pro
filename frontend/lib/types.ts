@@ -61,11 +61,16 @@ export interface Sequence {
 }
 
 export interface SafetyConfig {
+  workspace_min_x: number;
+  workspace_max_x: number;
+  workspace_min_y: number;
+  workspace_max_y: number;
+  workspace_min_z: number;
+  workspace_max_z: number;
   max_speed: number;
+  loaded_max_speed: number;
   boundary_slowdown_distance: number;
   boundary_slowdown_factor: number;
-  loaded_max_speed: number;
-  estop_release_vacuum: boolean;
 }
 
 export interface ExclusionZone {
@@ -104,4 +109,12 @@ export type BlockType =
 export interface ProgramBlock {
   type: BlockType;
   [key: string]: unknown;
+}
+
+export interface GcodeToolpathPoint {
+  x: number;
+  y: number;
+  z: number;
+  f: number;
+  rapid: boolean;
 }

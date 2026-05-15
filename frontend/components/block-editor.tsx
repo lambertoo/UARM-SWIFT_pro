@@ -68,16 +68,16 @@ export function BlockEditor() {
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b">
-        <h3 className="font-medium text-sm">Block Editor</h3>
+    <div className="card-panel overflow-hidden">
+      <div className="card-panel-header">
+        <h3 className="text-sm font-semibold text-gray-700">Block Editor</h3>
         <div className="flex gap-2">
           {running ? (
-            <button className="bg-red-600 text-white px-3 py-1 rounded text-sm" onClick={handleStop}>Stop</button>
+            <button className="btn-danger text-xs" onClick={handleStop}>Stop</button>
           ) : (
-            <button className="bg-green-600 text-white px-3 py-1 rounded text-sm" onClick={handleRun}>Run</button>
+            <button className="btn-success text-xs" onClick={handleRun}>Run</button>
           )}
-          <button className="border px-3 py-1 rounded text-sm hover:bg-gray-100" onClick={handleExportPython}>Export Python</button>
+          <button className="btn-secondary text-xs" onClick={handleExportPython}>Export Python</button>
         </div>
       </div>
       <div ref={editorRef} className="w-full h-[500px]" />
